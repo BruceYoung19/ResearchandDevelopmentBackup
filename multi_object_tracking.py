@@ -26,6 +26,7 @@ OPENCV_OBJECT_TRACKERS = {
 	"boosting": cv2.TrackerBoosting_create,
 	"mil": cv2.TrackerMIL_create,
 	"tld": cv2.TrackerTLD_create,
+	"GoTurn": cv2.TrackerGOTURN_create,
 	"medianflow": cv2.TrackerMedianFlow_create,
 	"mosse": cv2.TrackerMOSSE_create
 }
@@ -75,14 +76,26 @@ while True:
 	if key == ord("s"):
 		# select the bounding box of the object we want to track (make
 		# sure you press ENTER or SPACE after selecting the ROI)
-		box = cv2.selectROI("Frame", frame, fromCenter=False,
-			showCrosshair=True)
+		#box = cv2.selectROI("Frame", frame, fromCenter=False,
+			#showCrosshair=True)
 
-		#box = (5,10,20)	
+		box = (35,14.49,19.8,15.41)	
+		box2 = (50,45,35,30)
+		box3 = (25,30,66,13)
+		box4 = (10,10,10,10)
 		# create a new object tracker for the bounding box and add it
 		# to our multi-object tracker
 		tracker = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
 		trackers.add(tracker, frame, box)
+
+		tracker1 = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
+		trackers.add(tracker1, frame, box2)
+
+		tracker2 = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
+		trackers.add(tracker2, frame, box3)
+
+		tracker3 = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
+		trackers.add(tracker3, frame, box4)
 		#trackers.add(tracker, frame, box,trackers)
 
 	# if the `q` key was pressed, break from the loop
