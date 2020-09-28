@@ -26,6 +26,12 @@ if not success:
 # Writing a file
 file = open("Test.txt","w")
 
+# writing system requirements
+file.write("Machine (Bit): " + platform.machine() + "\n")
+file.write("Machine - Version: " + platform.version() +" \n")
+file.write("Machine - Platform: " + platform.platform() + "\n")
+file.write("Machine - System: " + platform.system()+ "\n")
+
 ## Select boxes
 bboxes = [(500,500,50,50)]
 # bboxes = [(250, 782, 125, 296), (1449, 35, 92, 163)]
@@ -69,6 +75,11 @@ while cap.isOpened():
 	# get updated location of objects in subsequent frames
 	success, boxes = multiTracker.update(frame)
 
+	pid = os.getpid()
+	py = psutil.Process(pid)
+	memoryUse = str(py.memory_info()[0]/2.**30) # memory use in GB...I think
+	file.write ("memory use:"+ memoryUse + "\n")
+
 	# draw tracked objects
 	for i, newbox in enumerate(boxes):
 		p1 = (int(newbox[0]), int(newbox[1]))
@@ -81,12 +92,7 @@ while cap.isOpened():
 	if cv2.waitKey(1) & 0xFF == 27:  # Esc pressed
 		
 		FinishTime = datetime.datetime.now()
-		
-		# writing system requirements
-		file.write("Machine (Bit): " + platform.machine() + "\n")
-		file.write("Machine - Version: " + platform.version() +" \n")
-		file.write("Machine - Platform: " + platform.platform() + "\n")
-		file.write("Machine - System: " + platform.system()+ "\n")
+				
 		#overall time
 		FinalTime = str(FinishTime - initalTime)
 		file.write("Time of executation: " + FinalTime +"\n")
