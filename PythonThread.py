@@ -36,9 +36,7 @@ if __name__ == "__main__":
 
     logging.info("Main    : wait for the thread to finish")
 
-    # x.join()
-
-   	x.close()
+    x.join()
 
     logging.info("Main    : all done")
 
