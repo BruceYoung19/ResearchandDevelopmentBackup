@@ -4,12 +4,14 @@ import cv2
 from random import randint
 import platform
 import datetime
+import threading
+import logging
 import os
-import numpy as np
 import psutil #for keeping track of OS
 import time #keeping track of system time
 from imutils.video import FPS
 from datetime import datetime
+import re
 
 #MultiTracker Class
 class MultiTracker:
@@ -23,12 +25,6 @@ class Tracker:
 		global tracker
 		bb = box
 		tracker = cv2.TrackerGOTURN_create()
-		tracker.init(frame,box)
-		return tracker
-	def initMOSSE(frame, box):
-		global tracker
-		bb = box
-		tracker = cv2.TrackerMOSSE_create()
 		tracker.init(frame,box)
 		return tracker
 	def initKCF(frame, box):
@@ -51,6 +47,24 @@ class main:
 		   (1608, 609, 111, 249), (803, 255, 54, 166), (1800, 184, 67, 168), (871, 390, 113, 182), (983, 3, 51, 123),
 		   (1349, 19, 56, 109), (1567, 910, 153, 170), (1159, 0, 37, 76), (282, 277, 84, 198), (907, 479, 120, 157)]
 
+	#new bounding boxes dictionary
+	newBoxes = {}
+
+	#open text file line by line for new bounding boxes
+	textFile = open("newBB.txt","r")
+	for line in textFile:
+		key = None
+		value = []
+		x = line.split("-")
+		for i in x:
+			if(key is None):
+				key = int(i)
+			else:
+				value.append(int(i))
+		newBoxes[key] = tuple(value)
+	textFile.close()
+
+
 	# Set video to load
 	videoPath = "TownCentreXVID.avi"
 
@@ -59,7 +73,6 @@ class main:
 
 	# Read first frame
 	success, frame = cap.read()
-	
 	# quit if unable to read the video file
 	if not success:
 	  print('Failed to read video')
@@ -80,7 +93,6 @@ class main:
 	psutil.virtual_memory()
 	file.write("Virtual Memory - Avaliable : "  + str(psutil.virtual_memory().percent) + "\n")
 
-	
 	#initialise tracker
 	trackers = []
 
@@ -102,13 +114,11 @@ class main:
 		if not success:
 			break
 		if success and not flag:
-			out.write(frame)
 			fps = FPS().start()
 			flag = True
 
-		if frameNo == 5:
-			print("NEW BOX")
-			trackers.append(t.initKCF(frame, (639, 988, 148, 86)))
+		if frameNo in newBoxes:
+			trackers.append(t.initKCF(frame, newBoxes[frameNo]))
 
 		boxes = []
 		# get updated location of objects in subsequent frames
@@ -123,12 +133,12 @@ class main:
 		pid = os.getpid()
 		py = psutil.Process(pid)
 		# memoryUse = str(py.memory_info()[0]/2.**30) # memory use in GB...I think
-		rssUse = str(py.memory_info()[0]) #memory in bytes
-		vmsUse = str(py.memory_info()[1])
+		rssUse = "{:.2f}".format(py.memory_info()[0]/1048576 ) #memory in megabytes
+		vmsUse = "{:.2f}".format(py.memory_info()[1]/1048576 )
 
 		# file.write("FPS: {:.2f}".format(fps.fps())+" - ");
 		file.write ("rss memory use:"+ rssUse + "\n")
-		file.write ("vms memory use:"+ vmsUse + "\n")
+		file.write ("vms memory use:"+ vmsUse + "\n\n")
 		# file.write("Boundary Boxes : " + str(box)+ "\n")
 
 		# draw tracked objects
@@ -141,7 +151,6 @@ class main:
 		# 	p2 = (int(newbox[0] + newbox[2]), int(newbox[1] + newbox[3]))
 		# 	cv2.rectangle(frame, p1, p2, (0, 255, 0), 2, 1)
 
-		
 		# show frame
 		cv2.imshow('MultiTracker', frame)
 
@@ -156,6 +165,5 @@ class main:
 
 	print("time elasped: "+ str(timeSec) +"seconds - "+timeMin+" minutes.");
 	# close all windows
-	out.release()
 	cv2.destroyAllWindows()
 
