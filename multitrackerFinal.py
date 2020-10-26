@@ -73,7 +73,29 @@ class main:
 	textFile.close()
 
 
-	# Set video to load
+	groundtruth = {}
+	# open text file line by line for new bounding boxes
+	textFile = open("TownCentre-groundtruth.txt", "r")
+	for line in textFile:
+		key = None
+		value = []
+		bb = []
+		x = []
+		line = line.split(",")
+		for i in line:
+			x.append(int(float(i)))
+		key = (x[1])
+		bb.append(x[8])
+		bb.append(x[9])
+		bb.append(x[10] - x[8])
+		bb.append(x[11] - x[9])
+		if key in groundtruth:
+			groundtruth[key].append(bb)
+		else:
+			groundtruth[key] = value
+	textFile.close()
+
+# Set video to load
 	videoPath = "TownCentreXVID.avi"
 
 	# Create a video capture object to read videos
@@ -119,7 +141,7 @@ class main:
 	for i in box:
 		t = Tracker()
 		trackers.append(t)
-		t.initMOSSE(frame, i)
+		t.initCSRT(frame, i)
 
 	#start timer
 	start = time.time()
@@ -138,12 +160,11 @@ class main:
 		if success and not flag:
 			fps = FPS().start()
 			flag = True
-			
 
 		if frameNo in newBoxes:
 			t = Tracker()
 			trackers.append(t)
-			t.initMOSSE(frame, newBoxes[frameNo])
+			t.initCSRT(frame, newBoxes[frameNo])
 
 		updatedBoxes = []
 		count = 0
@@ -186,10 +207,15 @@ class main:
 				cv2.putText(frame, identity, (x, y),
 					cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 				count+=1
-			for l in lines:
-				size = len(l)
-				for i in range(size-1):
-					cv2.line(frame, l[i],l[i+1],(0, 255, 0), 2)
+			if frameNo in groundtruth:
+				for groundtruthB in groundtruth[frameNo]:
+					(x, y, w, h) = [int(v) for v in groundtruthB]
+					cv2.rectangle(frame, (x, y), (x + w, y + h),(255, 0,0), 2)
+
+			# for l in lines:
+			# 	size = len(l)
+			# 	for i in range(size-1):
+			# 		cv2.line(frame, l[i],l[i+1],(0, 255, 0), 2)
 
 		# show frame
 		# cv2.imshow('MultiTracker', frame)
